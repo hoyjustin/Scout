@@ -1,7 +1,7 @@
 Scout
 =====
 Scout is an experimental application which tests the effectiveness of using
-bluetooth technology to gather customer data.
+bluetooth technology to gather customer data and track customers through retail space.
 
 
 Install
