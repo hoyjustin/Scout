@@ -3,6 +3,16 @@ var router = express.Router();
 var Parse = require('parse').Parse;
 var parseHandler = require('parse-handler');
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+var getRandomInt = function (min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+};
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+var getRandomArbitrary = function (min, max) {
+  return Math.random() * (max - min) + min;
+}
+
 router.get('/', function(req, res, next) {
     if (Parse.User.current()) {
         res.render('heatmap', { title: 'Scout', banner:'Heat Map', filename: 'heatmap' } );
@@ -32,6 +42,7 @@ router.get('/retrieveIntervalRecordsJSON', function(req, res, next) {
         console.log(error);
         res.status(400).send('ERROR: Cannot retrieve interval');
     }
+    console.log(Parse.User.current().getUsername());
     parseHandler.retrieveIntervalRecordsJSON(successCb, errorCb, {'user': Parse.User.current()});
 });
 
@@ -153,48 +164,51 @@ router.get('/getTestHeatmap', function(req, res, next) {
     var width = 1281;
     var height = 778; //TODO: Change based on image size
 
-    var minLng = -80;
-    var maxLng = 80;
-    var minLat = (-97.125/2);
-    var maxLat = (97.125/2);
+    var minX = -8;
+    var maxX = 5;
+    var minY = -2;
+    var maxY = 7;
 
-    var arrlen = 10;
-    var len = 20;
+    var days = 8;
+    var numberOfPoints = 15;
     var intervals = [];
 
     // heatmap data format
     var data = { 
     };
 
-    for (var i = 0;i<arrlen;i++) {
+    var date = new Date();
+    for (var i = 0; i < days; i++) {
+        var nPoints = numberOfPoints;
         var points = [];
-        while (len--) {
+        console.log(date);
+        var randomDate = date.toISOString();
+
+        while (nPoints--) {
           var val = Math.floor(Math.random()*100);
           max = Math.max(max, val);
-                    var start = new Date();
-          var end = start;
-          end.setDate(end.getDate() - 7);
-          console.log(end.getTime() - start.getTime())
-          var randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString();
+
 
           var timestamp = {
               __type: 'Date',
               iso: randomDate
           };
+
+          var randX = getRandomArbitrary(minX, maxX);
+          var randY = getRandomArbitrary(minY, maxY);
           var point = {
-            coordX: Math.floor(Math.random()*(maxLng-minLng))+minLng,
-            coordY: Math.floor(Math.random()*(maxLat-minLat))+minLat,
+            coordX: randX,
+            coordY: randY,
             timestamp: timestamp
           };
           points.push(point);
         }
-        len = 20;
-            console.log(points);
+        console.log(points);
         data[i] = points;
+        date.setDate(date.getDate() - 1);
     }
     console.log(data);
     res.json(data);
-
 });
 
 module.exports = router;

@@ -137,8 +137,8 @@
     // map.fitWorld(imageBounds, {padding: []});
 
     //get json from Parse
-    $.get('/heatmap/retrieveIntervalRecordsJSON')
-    //$.get('/heatmap/getTestHeatmap')
+    //$.get('/heatmap/retrieveIntervalRecordsJSON')
+    $.get('/heatmap/getTestHeatmap')
     .success(function (rawData) {
         var dateHash = {};
         var refreshIntervalId;
