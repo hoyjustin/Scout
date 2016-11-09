@@ -7,8 +7,12 @@ $(document).ready(function(){
             var tileColors = ["pink", "purple", "cyan", "amber", "blue", "red", "indigo", "deep-orange", "green", "light-blue"];
             var i = 0;
             data.forEach(function (reward) {
+                console.log(reward);
+
                 var objectid = reward['objectId'];
-                var imageUrl = reward['image'] ? reward['image'] : 'noimage.jpg';
+                var image = reward['image'] ? reward['image'] : 'noimage.jpg';
+                var imageUrl = image['url'];
+                console.log(imageUrl);
                 var points = reward['points'];
                 var description = reward['description'];
 
@@ -28,8 +32,8 @@ $(document).ready(function(){
                         '<span class="tile-holder tile-holder-sm" style = "top: 20px">' +
                         '<span class="title">' + description + '</span>' +
                         '</span>' +
-                        '<span class="tile-img" style="background-image: url(http://www.radiolaurier.com/wp-content/uploads/2014/10/coffee1.jpeg);"></span>' +
-                        '<span class="tile-holder tile-holder-sm" style = "top: 310px;">' +
+                        '<span class="tile-img" style="background-image: url(' + imageUrl + ');"></span>' +
+                        '<span class="tile-holder tile-holder-sm" style = "top: 240px;">' +
                         '<span class="title"><font color="yellow">Points: ' + points + '</font></span>' +
                         '</span>' +
                         '<span class="tile-holder tile-holder-sm">' +
@@ -123,6 +127,8 @@ $(document).ready(function(){
             $("#alert").append('<td style><h3>No available rewards.</h3></td>');
         }
     }
+
+
     // Refreshes rewards table
     var refreshTable = function (callback) {
         $.get('/rewards/getrewards')

@@ -16,10 +16,10 @@
     <link rel="stylesheet" href="js/ion.rangeSlider-2.0.6/css/ion.rangeSlider.skinHTML5.css" type="text/css" />
     <div class="container-fluid" style="height:60%; padding-left:130px; padding-right:130px;">
         <div class="row">
-            <div class="col-sm-9">
+            <div class="col-sm-8">
                 <div id = 'map'></div>
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-4">
                 <div id="beacons" ng-app="heatmapApp" ng-controller="BeaconListCtrl">
                   <input type="text" id="query" ng-model="query"/>
                   <select ng-model="orderList">
@@ -29,11 +29,13 @@
                   </select>
                   <ul id="beacon_ul" class="list">
                     <li ng-repeat="beacon in beacons | filter:query | orderBy: orderList" class="list">
-                        <strong>Name: </strong><div class="right">{{beacon.Name}}</div><br>
-                        <strong>Date added: </strong><div class="right">{{beacon.Date}}</div><br>
-                        <div style = 'margin-bottom: 5px';><strong>Coord: </strong><div class="right">{{beacon.Coord}}</div><br></div><!-- </div> -->
-                        <button type="submit" class="btn btn-primary edit btn-sm" id="{{beacon.objectId}}">Edit</button>
-                        <button type="submit" class="btn btn-danger remove btn-sm" id="{{beacon.objectId}}">Remove</button>
+                        <strong>Name: </strong><div>{{beacon.Name}}</div>
+                        <strong>Date added: </strong><div>{{beacon.Date}}</div><strong>Coord: </strong>
+                        <div>{{beacon.Coord}}</div>
+                        <div style="margin-top: -35px;">
+                        <button type="submit" class="btn btn-primary edit btn-sm right" style="" id="{{beacon.objectId}}">Edit</button>
+                        <button type="submit" class="btn btn-danger remove btn-sm right" style="" id="{{beacon.objectId}}">Remove</button>
+                        </div>
                     </li>
                   </ul>
                         <span>Number of beacons: {{beacons.length}}
@@ -47,7 +49,7 @@
             </div>
         </div>
     </div>
-
+<br>
     <div id = "style">
         <div id = "dateSlider";></div>
     </div>
@@ -136,6 +138,7 @@
 
     //get json from Parse
     $.get('/heatmap/retrieveIntervalRecordsJSON')
+    //$.get('/heatmap/getTestHeatmap')
     .success(function (rawData) {
         var dateHash = {};
         var refreshIntervalId;

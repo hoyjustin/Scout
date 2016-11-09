@@ -173,12 +173,14 @@ router.get('/getTestHeatmap', function(req, res, next) {
           max = Math.max(max, val);
                     var start = new Date();
           var end = start;
-          end.setDate(end.getDate() + 5);
-           var randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString();
-            var timestamp = {
-                __type: 'Date',
-                iso: randomDate
-            };
+          end.setDate(end.getDate() - 7);
+          console.log(end.getTime() - start.getTime())
+          var randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString();
+
+          var timestamp = {
+              __type: 'Date',
+              iso: randomDate
+          };
           var point = {
             coordX: Math.floor(Math.random()*(maxLng-minLng))+minLng,
             coordY: Math.floor(Math.random()*(maxLat-minLat))+minLat,
