@@ -1,7 +1,10 @@
 var express = require('express');
 var router = express.Router();
-var Parse = require('parse').Parse;
+var Parse = require('parse/node').Parse;
 var parseHandler = require('parse-handler');
+
+Parse.initialize('DiEded8eK6muPcH8cdHGj8iqYUny65Mva143CpQ3','unused');
+Parse.serverURL = 'https://scoutparseserver.herokuapp.com/parse';
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
 var getRandomInt = function (min, max) {
