@@ -18,13 +18,12 @@ var data = {
         avg: 'N/A'
     }
 };
-
 var session;
 
 router.get('/', function(req, res, next) {
- console.log(req.session);
+ console.log('%%%%' + JSON.stringify(req.app.get('userQueried')));
     // if (req.session != null && req.session.id != null) {
-        res.render('dashboard', { title: 'Scout', banner: 'Overview', filename: 'dashboard', data: data, session: session});
+        res.render('dashboard', { title: 'Scout', banner: 'Overview', filename: 'dashboard', data: data});
     // }
     // else {
          // res.redirect('/');
@@ -33,11 +32,26 @@ router.get('/', function(req, res, next) {
 
 // Fetch a parse object collection for the current user's business by its string
 // and return its json representation.
-var doStuffToMuhObjectJSON = function(objName, stuff) {
+var doStuffToMuhObjectJSON = function(currUser, objName, stuff) {
     var businessObj = Parse.Object.extend('Business');
     var businessQuery = new Parse.Query(businessObj);
     var query = new Parse.Query(Parse.Object.extend(objName));
-    businessQuery.equalTo('owner', session);
+    console.log("!!!!!!"+JSON.stringify(currUser));
+    businessQuery.equalTo('owner', currUser);
+
+    // var userquery = new Parse.Query(Parse.User);
+    // userquery.equalTo("email", "business@example.com");
+    // userquery.find({
+    //   success: function(users) {
+    //     console.log("!@#@!#"+JSON.stringify(users));
+    //   }
+    // });
+
+    // businessQuery.first({
+    //   success: function(users) {
+    //     console.log("asdasdsa"+JSON.stringify(users));
+    //   }
+    // });
 
     return businessQuery.first().then( function(business) {
         // queries for this page.
@@ -45,12 +59,13 @@ var doStuffToMuhObjectJSON = function(objName, stuff) {
         return query.collection().fetch();
     }).then( function (collection) {
         // do stuff to muh JSON
+        console.log('######' + JSON.stringify(collection));
         stuff(collection.toJSON());
     });
 };
 
 router.get('/index', function(req, res, next) {
-    doStuffToMuhObjectJSON('Points', function(json) {
+    doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Points', function(json) {
         // new daily customers with points
         data.new.daily = json.filter( function(point) {
             date = new Date(point.firstVisit);
@@ -68,7 +83,7 @@ router.get('/index', function(req, res, next) {
         // average points
         data.points.avg = data.points.earned / json.length;
     }).then( function() {
-        doStuffToMuhObjectJSON('Interval', function(json)  {
+        doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Interval', function(json)  {
             // average the durations sum / count
             var visitlength = json.reduce( function(a, b) {
                 return a + (new Date(b.to.iso) - new Date(b.from.iso));
@@ -85,7 +100,7 @@ router.get('/points', function(req, res, next) {
         key : 'Points',
         values : []
     }];
-    doStuffToMuhObjectJSON('Points', function(json) {
+    doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Points', function(json) {
         // map collection into series, with js timestamps
         var series = json.map( function (point) {
             return {
@@ -112,7 +127,7 @@ router.get('/customers', function(req, res, next) {
             values : []
         },
     ];
-    doStuffToMuhObjectJSON('Interval', function(json) {
+    doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Interval', function(json) {
         // get dates, and unique visits counts binned by said dates.
         var counts =  {};
         var arr = [];
@@ -129,7 +144,7 @@ router.get('/customers', function(req, res, next) {
         });
 
     }).then( function() {
-        doStuffToMuhObjectJSON('Points', function(json) {
+        doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Points', function(json) {
             // bin dates for points data (where unique business-customer
             // relationships should first be instatiated... eventually)
             var counts = {};

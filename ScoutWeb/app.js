@@ -17,6 +17,7 @@ var logout = require('./routes/logout');
 var heatmap = require('./routes/heatmap');
 var profile = require('./routes/profile');
 var app = express();
+var sess;
 
 Parse.initialize('DiEded8eK6muPcH8cdHGj8iqYUny65Mva143CpQ3','unused');
 Parse.serverURL = 'https://scoutparseserver.herokuapp.com/parse';
@@ -88,24 +89,52 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // auth checking
 function authChecker(req, res, next) {
-    if ((req.session != null) || req.path === '/'){
+    if (req.path === '/') {
+        next();
+    }
+    else if (req.session != null && req.session.user != null){
         // if (req.path === '/')
         // {
         //     res.redirect('/dashboard');
         // }
         // else
         // {
-            next();
+
+                console.log("Auth check hit");
+                                console.log(req.session.user);
+                app.set('sess', req.session);
+
+                var userquery = new Parse.Query(Parse.User);
+                userquery.equalTo("email", req.session.user['email']);
+                userquery.first({
+                  success: function(user) {
+                    app.set('userQueried', user);
+                    console.log("User Queried: " + JSON.stringify(user));
+                    next();
+                  },
+                  error: function(error) {
+                    console.log("Query User Error: " + error);
+                    res.redirect('/');
+                  }
+                });
+
         // }
     }
     else {
         res.redirect('/');
     }
 }
-app.use(authChecker);
 
+var sess;
+
+app.use(authChecker);
 // url routing
 app.use('/', index);
+// app.post('/', function(req, res, next) {
+//     sess = req.session;
+//         console.log('$$$$$$$$$$$$'+sess);
+//         next();
+// });
 app.use('/register', register);
 app.use('/dashboard', dashboard);
 app.use('/rewards', rewards);
