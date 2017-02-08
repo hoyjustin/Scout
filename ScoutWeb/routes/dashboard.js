@@ -22,12 +22,7 @@ var session;
 
 router.get('/', function(req, res, next) {
  console.log('%%%%' + JSON.stringify(req.app.get('userQueried')));
-    // if (req.session != null && req.session.id != null) {
-        res.render('dashboard', { title: 'Scout', banner: 'Overview', filename: 'dashboard', data: data});
-    // }
-    // else {
-         // res.redirect('/');
-    // }
+    res.render('dashboard', { title: 'Scout', banner: 'Overview', filename: 'dashboard', data: data});
 });
 
 // Fetch a parse object collection for the current user's business by its string
@@ -38,20 +33,6 @@ var doStuffToMuhObjectJSON = function(currUser, objName, stuff) {
     var query = new Parse.Query(Parse.Object.extend(objName));
     console.log("!!!!!!"+JSON.stringify(currUser));
     businessQuery.equalTo('owner', currUser);
-
-    // var userquery = new Parse.Query(Parse.User);
-    // userquery.equalTo("email", "business@example.com");
-    // userquery.find({
-    //   success: function(users) {
-    //     console.log("!@#@!#"+JSON.stringify(users));
-    //   }
-    // });
-
-    // businessQuery.first({
-    //   success: function(users) {
-    //     console.log("asdasdsa"+JSON.stringify(users));
-    //   }
-    // });
 
     return businessQuery.first().then( function(business) {
         // queries for this page.

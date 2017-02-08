@@ -17,11 +17,7 @@ var getRandomArbitrary = function (min, max) {
 }
 
 router.get('/', function(req, res, next) {
-    if (Parse.User.current()) {
-        res.render('heatmap', { title: 'Scout', banner:'Heat Map', filename: 'heatmap' } );
-    } else {
-        res.redirect('/');
-    }
+    res.render('heatmap', { title: 'Scout', banner:'Heat Map', filename: 'heatmap' } );
 });
 
 // routing to test retrieveIntervalJSON
@@ -33,7 +29,7 @@ router.get('/retrieveIntervalJSON', function(req, res, next) {
         console.log(error);
         res.status(400).send('ERROR: Cannot retrieve interval');
     }
-    parseHandler.retrieveIntervalJSON(successCb, errorCb, {'user': Parse.User.current()});
+    parseHandler.retrieveIntervalJSON(successCb, errorCb, {'user': req.app.get('userQueried')});
 });
 
 // routing to retrieveIntervalRecordsJSON
@@ -45,8 +41,8 @@ router.get('/retrieveIntervalRecordsJSON', function(req, res, next) {
         console.log(error);
         res.status(400).send('ERROR: Cannot retrieve interval');
     }
-    console.log(Parse.User.current().getUsername());
-    parseHandler.retrieveIntervalRecordsJSON(successCb, errorCb, {'user': Parse.User.current()});
+    console.log(req.app.get('userQueried')['username']);
+    parseHandler.retrieveIntervalRecordsJSON(successCb, errorCb, {'user': req.app.get('userQueried')});
 });
 
 // routing to retrieveBeaconsJson
@@ -58,7 +54,7 @@ router.get('/retrieveBeaconsJSON', function(req, res, next) {
         console.log(error);
         res.status(400).send('ERROR: Cannot retrieve beacons');
     }
-    parseHandler.retrieveBeaconsJSON(successCb, errorCb, {'user': Parse.User.current()});
+    parseHandler.retrieveBeaconsJSON(successCb, errorCb, {'user': req.app.get('userQueried')});
 });
 
 router.post('/addBeacon', function (req, res) {
@@ -72,7 +68,7 @@ router.post('/addBeacon', function (req, res) {
   console.log('name: '+ name + ', coordX: '+ coordX + ', coordY: '+ coordY);
 
   var businessQuery = new Parse.Query(BusinessObj);
-  businessQuery.equalTo('owner', Parse.User.current());
+  businessQuery.equalTo('owner', req.app.get('userQueried'));
   businessQuery.first().then( function(business) {
   
     var beacon = new BeaconObj();

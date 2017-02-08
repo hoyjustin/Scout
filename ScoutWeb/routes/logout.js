@@ -12,7 +12,7 @@ router.get('/', function(req, res, next) {
 	req.session.destroy(function() {
 		console.log('User Logged Out: ' + user);
 	});
-	console.log("logout session check: " + req.session);
+	console.log(req.session);
   }
   res.redirect('/');
 });
