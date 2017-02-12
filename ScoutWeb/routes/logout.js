@@ -10,11 +10,11 @@ router.get('/', function(req, res, next) {
   if (req.session != null) {
   	var user = req.session.user
 	req.session.destroy(function() {
-		console.log('User Logged Out: ' + user);
+		console.log("\nUser Logged Out: " + JSON.stringify(user['username']));
+		console.log("Session check: " + req.session);
+		res.redirect('/');
 	});
-	console.log(req.session);
   }
-  res.redirect('/');
 });
 
 module.exports = router;

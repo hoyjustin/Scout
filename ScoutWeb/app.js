@@ -44,7 +44,7 @@ app.use(multer({
 app.use(session({
     cookie: { maxAge: 1000 * 60 * 1 }, //1 hour (in milliseconds)
     secret: 'scoutSessionSecret',
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     store: new MongoStore({
         url: 'mongodb://scoutuser:scoutpass@ds033259.mlab.com:33259/scoutdb',
@@ -57,11 +57,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // auth checking
 function authChecker(req, res, next) {
     if (req.path === '/') {
-        console.log("Home Page Handler");
+        console.log("\nHome Page Handler");
         next();
     }
     else if (req.path === '/register') {
-        console.log("Register Page Handler");
+        console.log("\nRegister Page Handler");
         if (req.session == null || req.session.user == null) {
             next();
         }
@@ -70,7 +70,7 @@ function authChecker(req, res, next) {
         }
     }
     else if (req.session != null && req.session.user != null) {
-        console.log("Auth Check Handler");
+        console.log("\nAuth Check Handler");
         console.log(req.session.user);
         app.set('sess', req.session);
 
@@ -79,11 +79,11 @@ function authChecker(req, res, next) {
         userquery.first({
           success: function(user) {
             app.set('userQueried', user);
-            console.log("User Queried: " + JSON.stringify(user));
+            console.log("\nUser Retrieved: \n" + JSON.stringify(user));
             next();
           },
           error: function(error) {
-            console.log("Query User Error: " + error);
+            console.log("Unable to retrieve user: " + error);
             res.redirect('/');
           }
         });
