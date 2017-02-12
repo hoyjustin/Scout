@@ -1,7 +1,10 @@
 var express = require('express');
 var router = express.Router();
-var Parse = require('parse').Parse;
+var Parse = require('parse/node').Parse;
 var moment = require('moment');
+
+Parse.initialize('DiEded8eK6muPcH8cdHGj8iqYUny65Mva143CpQ3','unused');
+Parse.serverURL = 'https://scoutparseserver.herokuapp.com/parse';
 
 // Mock data
 var data = {
@@ -16,6 +19,17 @@ var data = {
     }
 };
 
+var session;
+
+router.get('/', function(req, res, next) {
+ console.log(req.session);
+    // if (req.session != null && req.session.id != null) {
+        res.render('dashboard', { title: 'Scout', banner: 'Overview', filename: 'dashboard', data: data, session: session});
+    // }
+    // else {
+         // res.redirect('/');
+    // }
+});
 
 // Fetch a parse object collection for the current user's business by its string
 // and return its json representation.
@@ -23,7 +37,7 @@ var doStuffToMuhObjectJSON = function(objName, stuff) {
     var businessObj = Parse.Object.extend('Business');
     var businessQuery = new Parse.Query(businessObj);
     var query = new Parse.Query(Parse.Object.extend(objName));
-    businessQuery.equalTo('owner', Parse.User.current());
+    businessQuery.equalTo('owner', session);
 
     return businessQuery.first().then( function(business) {
         // queries for this page.
@@ -34,17 +48,6 @@ var doStuffToMuhObjectJSON = function(objName, stuff) {
         stuff(collection.toJSON());
     });
 };
-
-
-router.get('/', function(req, res, next) {
-
-    if (Parse.User.current()) {
-        res.render('dashboard', { title: 'Scout', banner: 'Overview', filename: 'dashboard', data: data});
-    } else {
-        res.redirect('/');
-    }
-});
-
 
 router.get('/index', function(req, res, next) {
     doStuffToMuhObjectJSON('Points', function(json) {
