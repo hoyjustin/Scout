@@ -7,7 +7,7 @@ Parse.serverURL = 'https://scoutparseserver.herokuapp.com/parse';
 
 router.get('/', function(req, res, next) {
 console.log(req.session);
-  if (req.session.user != null) {
+  if (req.session != null && req.session.user != null) {
     res.redirect('/dashboard');
   }
   else {

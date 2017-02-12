@@ -18,37 +18,35 @@ var data = {
         avg: 'N/A'
     }
 };
+var session;
 
 router.get('/', function(req, res, next) {
+ console.log('%%%%' + JSON.stringify(req.app.get('userQueried')));
     res.render('dashboard', { title: 'Scout', banner: 'Overview', filename: 'dashboard', data: data});
 });
 
-// Fetch a parse object collection for a current user's business
-// given an identifier.
-// Applies a given function to it and returns its JSON representation.
-var queryObjForUserJSON = function(currUser, objName, func) {
+// Fetch a parse object collection for the current user's business by its string
+// and return its json representation.
+var doStuffToMuhObjectJSON = function(currUser, objName, stuff) {
     var businessObj = Parse.Object.extend('Business');
     var businessQuery = new Parse.Query(businessObj);
     var query = new Parse.Query(Parse.Object.extend(objName));
+    console.log("!!!!!!"+JSON.stringify(currUser));
     businessQuery.equalTo('owner', currUser);
 
-    var getObjforBusiness = function(business) {
+    return businessQuery.first().then( function(business) {
         // queries for this page.
         query.equalTo('business', business);
-        query.find().then(
-        function (collection) {
-            // apply given function to array of ParseObjects turned into JSON
-            return func(collection.map(function(item){return item.toJSON();}));
-        });
-    }
-    
-    var JSONresult = businessQuery.first().then(getObjforBusiness);
-    return JSONresult;
+        return query.collection().fetch();
+    }).then( function (collection) {
+        // do stuff to muh JSON
+        console.log('######' + JSON.stringify(collection));
+        stuff(collection.toJSON());
+    });
 };
 
 router.get('/index', function(req, res, next) {
-
-    var getPoints = function(json) {
+    doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Points', function(json) {
         // new daily customers with points
         data.new.daily = json.filter( function(point) {
             date = new Date(point.firstVisit);
@@ -65,32 +63,25 @@ router.get('/index', function(req, res, next) {
         }, 0);
         // average points
         data.points.avg = data.points.earned / json.length;
-    }
-
-    var getAvgDuration = function(json) {;
+    }).then( function() {
+        doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Interval', function(json)  {
             // average the durations sum / count
             var visitlength = json.reduce( function(a, b) {
                 return a + (new Date(b.to.iso) - new Date(b.from.iso));
             }, 0) / json.length;
             data.visitlength = moment.duration(visitlength).humanize();
         res.json(data);
-    }
-
-    console.log("\nGetting points and average duration of customers...");
-    queryObjForUserJSON(req.app.get('userQueried'), 'Points', getPoints).then( function() {
-        queryObjForUserJSON(req.app.get('userQueried'), 'Interval', getAvgDuration);
+        });
     });
 });
 
 
 router.get('/points', function(req, res, next) {
-
     var pointsData = [{
         key : 'Points',
         values : []
     }];
-
-    var mapSeries = function(json) {
+    doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Points', function(json) {
         // map collection into series, with js timestamps
         var series = json.map( function (point) {
             return {
@@ -102,16 +93,11 @@ router.get('/points', function(req, res, next) {
         // set and display
         pointsData[0].values = series;
         res.json(pointsData);
-    }
-
-    console.log("\nGetting points as series...");
-    queryObjForUserJSON(req.app.get('userQueried'), 'Points', mapSeries);
-
+    });
 });
 
 
 router.get('/customers', function(req, res, next) {
-
     var customerData = [
         {
             key : 'Visits',
@@ -122,8 +108,7 @@ router.get('/customers', function(req, res, next) {
             values : []
         },
     ];
-
-    var getVisitsByDate = function(json) {
+    doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Interval', function(json) {
         // get dates, and unique visits counts binned by said dates.
         var counts =  {};
         var arr = [];
@@ -138,9 +123,9 @@ router.get('/customers', function(req, res, next) {
         customerData[0].values = arr.sort( function(a, b) {
             return a.x - b.x;
         });
-    }
 
-    var getPointsByDate = function(json) {
+    }).then( function() {
+        doStuffToMuhObjectJSON(req.app.get('userQueried'), 'Points', function(json) {
             // bin dates for points data (where unique business-customer
             // relationships should first be instatiated... eventually)
             var counts = {};
@@ -152,15 +137,11 @@ router.get('/customers', function(req, res, next) {
             });
             for (key in counts)
                 arr.push({x: parseInt(key), y: counts[key]});
-            customerData[1].values = arr.sort( function(a, b) {
-                return a.x - b.x;
-            });
+        customerData[1].values = arr.sort( function(a, b) {
+            return a.x - b.x;
+        });
             res.json(customerData);
-        }
-
-    console.log("\nGetting visits and points binned by date...");
-    queryObjForUserJSON(req.app.get('userQueried'), 'Interval', getVisitsByDate).then( function() {
-        queryObjForUserJSON(req.app.get('userQueried'), 'Points', getPointsByDate);
+        });
     });
 });
 

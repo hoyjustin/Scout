@@ -1,13 +1,12 @@
 var express = require('express');
 var router = express.Router();
-var Parse = require('parse').Parse;
+var Parse = require('parse/node').Parse;
+
+Parse.initialize('DiEded8eK6muPcH8cdHGj8iqYUny65Mva143CpQ3','unused');
+Parse.serverURL = 'https://scoutparseserver.herokuapp.com/parse';
 
 router.get('/', function(req, res, next) {
-  if (Parse.User.current() == null) {
     res.render('register', { title: 'Scout', filename: 'register' });
-  } else {
-    res.redirect('/dashboard');
-  }
 });
 
 router.post('/', function (req, res) {
@@ -31,7 +30,7 @@ router.post('/', function (req, res) {
       var businessRec = new businessObj();
 
       businessRec.set("name", businessName);
-      businessRec.set("owner", Parse.User.current());
+      businessRec.set("owner", user);
 
       businessRec.save(null, {
         success: function(business) {

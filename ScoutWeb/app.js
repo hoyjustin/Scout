@@ -17,23 +17,14 @@ var logout = require('./routes/logout');
 var heatmap = require('./routes/heatmap');
 var profile = require('./routes/profile');
 var app = express();
+var sess;
 
 Parse.initialize('DiEded8eK6muPcH8cdHGj8iqYUny65Mva143CpQ3','unused');
 Parse.serverURL = 'https://scoutparseserver.herokuapp.com/parse';
 
-// app.post('/',function(req,res){
-//     sess = req.session;
-//     res.end('done');
-// });
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-
-// app.post('/', function(req, res){
-//   req.session = req.session;
-//   res.redirect('/');
-// });
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
@@ -53,7 +44,7 @@ app.use(multer({
 app.use(session({
     cookie: { maxAge: 1000 * 60 * 1 }, //1 hour (in milliseconds)
     secret: 'scoutSessionSecret',
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     store: new MongoStore({
         url: 'mongodb://scoutuser:scoutpass@ds033259.mlab.com:33259/scoutdb',
@@ -61,49 +52,48 @@ app.use(session({
     })
 }));
 
-// app.use(session({ store: new RedisStore({
-//   client: client,
-//   host:'127.0.0.1',
-//   port:6379,
-//   prefix:'sess',
-//   ttl: 30 * 60 // 30 minutes (Session store time)
-//   }),
-//     secret: 'scoutSessionSecret',
-//     resave: false,
-//     saveUninitialized: true,
-// }));
-
 app.use(express.static(path.join(__dirname, 'public')));
-
-// app.use(function(req, res, next) {
-//     if (req.session) {
-//         // sess = req.session;
-//         // console.log('Session changed ' + sess);
-//         // res.redirect('/dashboard');
-//     }
-//     else {
-//         res.render('index', { title: 'Scout', filename: 'index' });
-//     }
-// });
 
 // auth checking
 function authChecker(req, res, next) {
-    if ((req.session != null) || req.path === '/'){
-        // if (req.path === '/')
-        // {
-        //     res.redirect('/dashboard');
-        // }
-        // else
-        // {
+    if (req.path === '/') {
+        console.log("\nHome Page Handler");
+        next();
+    }
+    else if (req.path === '/register') {
+        console.log("\nRegister Page Handler");
+        if (req.session == null || req.session.user == null) {
             next();
-        // }
+        }
+        else {
+            res.redirect('/');
+        }
+    }
+    else if (req.session != null && req.session.user != null) {
+        console.log("\nAuth Check Handler");
+        console.log(req.session.user);
+        app.set('sess', req.session);
+
+        var userquery = new Parse.Query(Parse.User);
+        userquery.equalTo("email", req.session.user['email']);
+        userquery.first({
+          success: function(user) {
+            app.set('userQueried', user);
+            console.log("\nUser Retrieved: \n" + JSON.stringify(user));
+            next();
+          },
+          error: function(error) {
+            console.log("Unable to retrieve user: " + error);
+            res.redirect('/');
+          }
+        });
     }
     else {
         res.redirect('/');
     }
 }
-app.use(authChecker);
 
+app.use(authChecker);
 // url routing
 app.use('/', index);
 app.use('/register', register);
@@ -113,10 +103,6 @@ app.use('/logout', logout);
 app.use('/heatmap', heatmap);
 app.use('/profile', profile);
 
-// app.post('/', function(req, res, next) {
-//     sess = req.session;
-// });
-
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');
@@ -124,7 +110,7 @@ app.use(function(req, res, next) {
     next(err);
 });
 
-// error handlers
+// ERROR HANDLERS
 
 // development error handler
 // will print stacktrace

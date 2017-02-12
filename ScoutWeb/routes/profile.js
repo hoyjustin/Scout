@@ -1,15 +1,13 @@
 var express = require('express');
 var router = express.Router();
-var Parse = require('parse').Parse;
+var Parse = require('parse/node').Parse;
 var parseHandler = require('parse-handler');
 
-router.get('/', function(req, res, next) {
+Parse.initialize('DiEded8eK6muPcH8cdHGj8iqYUny65Mva143CpQ3','unused');
+Parse.serverURL = 'https://scoutparseserver.herokuapp.com/parse';
 
-    if (Parse.User.current()) {
-        res.render('profile', { title: 'Scout', banner: 'Profile', filename: 'profile' });
-    } else {
-        res.redirect('/');
-    }
+router.get('/', function(req, res, next) {
+    res.render('profile', { title: 'Scout', banner: 'Profile', filename: 'profile' });
 });
 
 router.get('/index', function(req, res) {
@@ -19,6 +17,7 @@ router.get('/index', function(req, res) {
 
         //Load the pre-existing business values
         var profileImage = business.get("image");
+        console.log(JSON.stringify(profileImage));
         if(profileImage != undefined) {
             data.image = profileImage.url();
         }
@@ -31,7 +30,7 @@ router.get('/index', function(req, res) {
     };
 
     var businessFailure = function (error) {
-        var msg = 'ERROR: Unable to query business for owner'+Parse.User.current();
+        var msg = 'ERROR: Unable to query business for owner' + req.app.get('userQueried');
 
         console.log(msg);
         console.log(error.message);
@@ -39,7 +38,7 @@ router.get('/index', function(req, res) {
         res.status(400).send(msg);
     };
 
-    var businessArgs = {'user': Parse.User.current()};
+    var businessArgs = {'user': req.app.get('userQueried')};
 
     parseHandler.retrieveBusiness(businessSuccess, businessFailure, businessArgs);
 });
@@ -65,14 +64,14 @@ router.post('/', function (req, res) {
         business.set("rate", rate);
 
 
-        var curLoggedUser = Parse.User.current();
+        var curLoggedUser = req.app.get('userQueried');
         //checks if current password is the same as the one provided
         //only change the password if current password and a new password is entered
         if (password != undefined && password.trim().length > 0) {
             //keep track of current logged in user so that we can
             //log him back if the current password entered in edit profile is invalid
-            var curUser = curLoggedUser.getSessionToken();
-            var curUserName = curLoggedUser.get("username");
+            var curUser = req.app.get('sess').sessionToken;
+            var curUserName = curLoggedUser["username"];
             Parse.User.logOut();
             Parse.User.logIn(curUserName, curPassword, {
                 success: function (user) {
@@ -97,7 +96,7 @@ router.post('/', function (req, res) {
     };
 
     var businessFailure = function (error) {
-        var msg = 'ERROR: Unable to query business for owner'+Parse.User.current();
+        var msg = 'ERROR: Unable to query business for owner' + req.app.get('userQueried');
 
         console.log(msg);
         console.log(error.message);
@@ -105,7 +104,7 @@ router.post('/', function (req, res) {
         res.status(400).send(msg);
     };
 
-    var businessArgs = {'user': Parse.User.current()};
+    var businessArgs = {'user': req.app.get('userQueried')};
 
     parseHandler.retrieveBusiness(businessSuccess, businessFailure, businessArgs);
 });
@@ -127,10 +126,14 @@ function saveImage(image, business, res) {
     if (image != undefined && image != null) {
         var base64Img = new Buffer(image.buffer).toString('base64');
         var parseFile = new Parse.File(image.name, { base64: base64Img });
-        parseFile.save().then(function () {
+        console.log('Image saving...');
+        parseFile.save(null, {useMasterKey:true}).then(function () {
             // The file has been saved to Parse. Now attach it to our business model
+            console.log('Image successfully saved.');
+            console.log('Business saving...');
             business.set("image", parseFile);
             saveBusiness(business, res);
+            Console.log('Business successfully saved.');
         }, function (error) {
             console.log(error);
             res.status(502).send('Failed to update business profile picture.');

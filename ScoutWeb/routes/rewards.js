@@ -7,11 +7,7 @@ Parse.initialize('DiEded8eK6muPcH8cdHGj8iqYUny65Mva143CpQ3','unused');
 Parse.serverURL = 'https://scoutparseserver.herokuapp.com/parse';
 
 router.get('/', function(req, res, next) {
-  if (Parse.User.current()) {
     res.render('rewards', { title: 'Scout', banner: 'Rewards', filename: 'rewards' });
-  } else {
-    res.redirect('/');
-  }
 });
 
 router.get('/getrewards', function(req, res, next) {
@@ -36,7 +32,7 @@ router.get('/getrewards', function(req, res, next) {
   }
 
   var businessFailure = function (error) {
-      var msg = 'ERROR: Unable to query business for owner'+Parse.User.current();
+      var msg = 'ERROR: Unable to query business for owner' + req.app.get('userQueried');
 
       console.log(msg);
       console.log(error.message);
@@ -44,7 +40,7 @@ router.get('/getrewards', function(req, res, next) {
       res.status(400).send(msg);
     }
 
-  var businessArgs = {'user': Parse.User.current()};
+  var businessArgs = {'user': req.app.get('userQueried')};
 
   parseHandler.retrieveBusiness(businessSuccess, businessFailure, businessArgs);
 });
@@ -59,7 +55,7 @@ router.post('/addreward', function (req, res) {
   console.log('description: '+ description + ', points: '+ points);
 
   var businessQuery = new Parse.Query(BusinessObj);
-  businessQuery.equalTo('owner', Parse.User.current());
+  businessQuery.equalTo('owner', req.app.get('userQueried'));
   businessQuery.first().then( function(business) {
   
     var reward = new RewardObj();
@@ -87,7 +83,6 @@ router.post('/addreward', function (req, res) {
     res.status(400).send('Unable to find the current business.');
   });
 });
-
 
 router.post('/removereward', function (req, res) {
   var rewardObjectId = req.body['objectid'];
