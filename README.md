@@ -11,7 +11,7 @@ Scout has two applications, the Android mobile application and the web
 dashboard.
 
 The mobile application is developed in Android Studio and we recommend you to
-use this IDE to further development.  Simply open `ScoutMobile` with Android 
+use this IDE in further development.  Simply open `ScoutMobile` with Android 
 Studio and hit `run` to execute.
 
 The web application uses node.js. To run the development server, simply 
